@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Content Summarizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .result-header {
+            color: #333;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .source-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .source-label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .source-content {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .summary-content {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .error-message {
+            background: #fff5f5;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #fed7d7;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .new-summary-btn {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .new-summary-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .generate-btn {
+                width: 100%;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Content Summarizer</h1>
+            <p>Enter text or a URL to get an intelligent summary powered by Google Gemini</p>
+        </div>
+
+        <div class="input-section" id="inputSection">
+            <label for="contentInput" class="input-label">
+                📝 Enter Text or 🔗 Paste URL
+            </label>
+            <textarea id="contentInput" class="input-field"
+                placeholder="Paste your text here or enter a URL (e.g., https://example.com/article)..."
+                rows="6"></textarea>
+        </div>
+
+        <div class="button-container">
+            <button id="generateBtn" class="generate-btn">
+                ✨ Generate Summary
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Generating your summary... Please wait</p>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="result-section" id="resultSection">
+            <div class="result-header">
+                📋 Summary Result
+            </div>
+
+            <div class="source-info" id="sourceInfo">
+                <div class="source-label">Source Type:</div>
+                <div class="source-content" id="sourceType"></div>
+                <div class="source-label" style="margin-top: 10px;">Source:</div>
+                <div class="source-content" id="sourceContent"></div>
+            </div>
+
+            <div class="summary-content" id="summaryContent"></div>
+
+            <button class="new-summary-btn" id="newSummaryBtn">
+                🔄 Create New Summary
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const contentInput = document.getElementById('contentInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const loading = document.getElementById('loading');
+        const errorMessage = document.getElementById('errorMessage');
+        const resultSection = document.getElementById('resultSection');
+        const inputSection = document.getElementById('inputSection');
+        const summaryContent = document.getElementById('summaryContent');
+        const sourceType = document.getElementById('sourceType');
+        const sourceContent = document.getElementById('sourceContent');
+        const newSummaryBtn = document.getElementById('newSummaryBtn');
+
+        generateBtn.addEventListener('click', async function () {
+            const content = contentInput.value.trim();
+
+            if (!content) {
+                showError('Please enter some text or a URL to summarize.');
+                return;
+            }
+
+            // Show loading state
+            generateBtn.disabled = true;
+            loading.style.display = 'block';
+            errorMessage.style.display = 'none';
+            resultSection.style.display = 'none';
+
+            try {
+                const response = await fetch('/summarize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        content: content
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Show results
+                    sourceType.textContent = data.source_type;
+                    sourceContent.textContent = data.source;
+                    summaryContent.textContent = data.summary;
+
+                    inputSection.style.display = 'none';
+                    resultSection.style.display = 'block';
+                } else {
+                    showError(data.error || 'An error occurred while generating the summary.');
+                }
+            } catch (error) {
+                showError('Network error. Please check your connection and try again.');
+            } finally {
+                generateBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+
+        newSummaryBtn.addEventListener('click', function () {
+            // Reset form
+            contentInput.value = '';
+            inputSection.style.display = 'block';
+            resultSection.style.display = 'none';
+            errorMessage.style.display = 'none';
+            contentInput.focus();
+        });
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        // Auto-resize textarea
+        contentInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = Math.max(120, this.scrollHeight) + 'px';
+        });
+
+        // Focus on input when page loads
+        window.addEventListener('load', function () {
+            contentInput.focus();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,13 @@
+[project]
+name = "flask-aws-gemini"
+version = "0.1.0"
+description = "Flask app with Gemini API for text and URL summarization"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "flask>=3.0.0",
+    "google-generativeai>=0.3.0",
+    "requests>=2.31.0",
+    "beautifulsoup4>=4.12.0",
+    "python-dotenv>=1.0.0"
+]
